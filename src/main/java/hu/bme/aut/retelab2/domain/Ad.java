@@ -1,12 +1,14 @@
 package hu.bme.aut.retelab2.domain;
 
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +32,9 @@ public class Ad {
 
     @ElementCollection
     private List<String> tags = new ArrayList<>();
+
+    @Nullable
+    private LocalDateTime expiryDate;
 
     public Long getId() {
         return id;
@@ -68,7 +73,6 @@ public class Ad {
     }
 
     public void setCreatedDate() {
-
         this.createdDate = Instant.now();
     }
 
@@ -86,6 +90,14 @@ public class Ad {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public LocalDateTime getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDateTime expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
 }

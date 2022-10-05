@@ -4,11 +4,14 @@ import hu.bme.aut.retelab2.NoAccessException;
 import hu.bme.aut.retelab2.SecretGenerator;
 import hu.bme.aut.retelab2.domain.Ad;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -26,8 +29,8 @@ public class AdRepository {
 
     public List<Ad> searchByPrice(int min, int max) {
         List<Ad> result = em.createQuery("select a from Ad a where a.price between ?1 and ?2", Ad.class).setParameter(1, min).setParameter(2, max).getResultList();
-        deletePrivateId(result);
-        return result;
+
+        return deletePrivateId(result);
     }
 
     @Transactional
@@ -46,14 +49,25 @@ public class AdRepository {
         List<Ad> result = em.createQuery("select a from Ad a where ?1 member a.tags", Ad.class)
                 .setParameter(1, tag)
                 .getResultList();
-        deletePrivateId(result);
-        return result;
+
+        return deletePrivateId(result);
     }
 
     private List<Ad> deletePrivateId(List<Ad> toBeDeleted)
     {
         toBeDeleted.forEach(ad -> ad.setSecretId(null));
         return toBeDeleted;
+    }
+
+    @Scheduled(fixedDelay = 6000)
+    @Transactional
+    @Modifying
+    public void deleteOldEntries() {
+        List<Ad> old = em.createQuery("select a from Ad a where a.expiryDate < ?1", Ad.class).setParameter(1, LocalDateTime.now()).getResultList();
+        old.forEach(ad -> {
+            ad.getTags().clear();
+            em.remove(ad);
+        });
     }
 
 }
